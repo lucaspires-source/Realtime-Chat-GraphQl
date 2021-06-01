@@ -4,16 +4,27 @@ import {
   ApolloProvider,
   useQuery,
   gql,
-  useMutation
+  useMutation,
+  useSubscription
 } from "@apollo/client";
-import { Container } from "shards-react";
+import { Container, Row, Col, FormInput, Button } from "shards-react";
+import { WebSocketLink } from "@apollo/client/link/ws";
+const link = new WebSocketLink({
+  uri: `ws://localhost:4000/`,
+  options: {
+    reconnect: true,
+  },
+});
+
+
 const client = new ApolloClient({
+  link,  
   uri: "http://localhost:4000/",
   cache: new InMemoryCache(),
 });
 
 const GET_MESSAGES = gql`
-  query {
+  subscription {
     messages {
       id
       content
@@ -30,11 +41,9 @@ mutation($user:String!,$content:String!){
 
 `
 const Messages = ({ user }) => {
-  const { data } = useQuery(GET_MESSAGES,{
-      pollInterval:500,
-  });
-  if (!data) {
-    return null;
+    const { data } = useSubscription(GET_MESSAGES);
+    if (!data) {
+      return null;
   }
 
   return (
